@@ -3,15 +3,15 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 
-st.set_page_config(page_title="🏎️ F1 2025 Dashboard", layout="wide")
-st.title("🏎️ F1 2025 Dashboard")
+st.set_page_config(page_title="🏎️ F1 2024 Dashboard", layout="wide")
+st.title("🏎️ F1 2024 Dashboard")
 
 def fetch_data(url):
     response = requests.get(url)
     return BeautifulSoup(response.content, 'lxml') if response.status_code == 200 else None
 
 def fetch_race_calendar():
-    soup = fetch_data("https://www.formula1.com/en/racing/2025.html")
+    soup = fetch_data("https://www.formula1.com/en/racing/2024.html")
     if not soup:
         return pd.DataFrame()
     races = soup.select('.event-item-wrapper')
@@ -25,9 +25,9 @@ def fetch_race_calendar():
 
 def fetch_results_standings(category):
     urls = {
-        "races": "https://www.formula1.com/en/results.html/2025/races.html",
-        "drivers": "https://www.formula1.com/en/results.html/2025/drivers.html",
-        "teams": "https://www.formula1.com/en/results.html/2025/team.html"
+        "races": "https://www.formula1.com/en/results.html/2024/races.html",
+        "drivers": "https://www.formula1.com/en/results.html/2024/drivers.html",
+        "teams": "https://www.formula1.com/en/results.html/2024/team.html"
     }
     soup = fetch_data(urls.get(category))
     if not soup:
@@ -44,7 +44,7 @@ def fetch_results_standings(category):
 tab1, tab2, tab3 = st.tabs(["📅 Race Calendar", "🏁 Results & Standings", "📊 Winning Scenarios"])
 
 with tab1:
-    st.subheader("Race Calendar 2025")
+    st.subheader("Race Calendar 2024")
     calendar_df = fetch_race_calendar()
     if not calendar_df.empty:
         st.dataframe(calendar_df, use_container_width=True)
