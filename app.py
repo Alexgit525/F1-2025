@@ -1,31 +1,40 @@
-
 import streamlit as st
+import requests
 import pandas as pd
 
-st.set_page_config(page_title="2025 F1 Season Dashboard", layout="wide")
-st.title("2025 Formula 1 Season Dashboard")
+st.set_page_config(page_title="🏎️ F1 2025 Live Dashboard", layout="wide")
+st.title("🏎️ F1 2025 Live Dashboard")
 
-calendar_data = {
-    "Round": list(range(1, 25)),
-    "Grand Prix": ["Australian GP", "Chinese GP", "Japanese GP", "Bahrain GP", "Saudi Arabian GP",
-                   "Miami GP", "Emilia-Romagna GP", "Monaco GP", "Spanish GP", "Canadian GP",
-                   "Austrian GP", "British GP", "Belgian GP", "Hungarian GP", "Dutch GP",
-                   "Italian GP", "Azerbaijan GP", "Singapore GP", "United States GP",
-                   "Mexican GP", "Brazilian GP", "Las Vegas GP", "Qatar GP", "Abu Dhabi GP"],
-    "Circuit": ["Albert Park, Melbourne", "Shanghai International Circuit", "Suzuka Circuit, Suzuka",
-                "Bahrain International Circuit, Sakhir", "Jeddah Corniche Circuit, Jeddah",
-                "Miami International Autodrome, Miami", "Imola, Italy", "Circuit de Monaco, Monte Carlo",
-                "Circuit de Barcelona-Catalunya, Barcelona", "Circuit Gilles-Villeneuve, Montreal",
-                "Red Bull Ring, Spielberg", "Silverstone Circuit, Silverstone", "Spa-Francorchamps, Spa",
-                "Hungaroring, Budapest", "Circuit Zandvoort, Zandvoort", "Monza, Italy",
-                "Baku City Circuit, Baku", "Marina Bay Street Circuit, Singapore",
-                "Circuit of the Americas, Austin", "Autódromo Hermanos Rodríguez, Mexico City",
-                "Interlagos, São Paulo", "Las Vegas Strip Circuit, Las Vegas", "Lusail International Circuit, Lusail",
-                "Yas Marina Circuit, Abu Dhabi"],
-    "Approx. Dates": ["Mar 14–16, 2025", "Mar 21–23, 2025", "Apr 4–6, 2025", "Apr 11–13, 2025", "Apr 18–20, 2025",
-                      "May 2–4, 2025 (Sprint)", "May 16–18, 2025", "May 23–25, 2025", "May 30–Jun 1, 2025", "Jun 13–15, 2025",
-                      "Jun 27–29, 2025", "Jul 4–6, 2025", "Jul 25–27, 2025 (Sprint)", "Aug 1–3, 2025", "Aug 29–31, 2025",
-                      "Sep 5–7, 2025", "Sep 19–21, 2025", "Oct 3–5, 2025", "Oct 17–19, 2025 (Sprint)", "Oct 24–26, 2025",
-                      "Nov 7–9, 2025 (Sprint)", "Nov 20–22, 2025", "Nov 28–30, 2025 (Sprint)", "Dec 5–7, 2025"]
-}
-st.dataframe(pd.DataFrame(calendar_data), use_container_width=True)
+# Fetch sessions for 2025
+def fetch_sessions(year=2025):
+    response = requests.get(f"https://api.openf1.org/v1/sessions?year={year}")
+    if response.status_code == 200:
+        return pd.DataFrame(response.json())
+    return pd.DataFrame()
+
+# Fetch laps data for a given session
+def fetch_laps(session_key):
+    response = requests.get(f"https://api.openf1.org/v1/laps?session_key={session_key}")
+    if response.status_code == 200:
+        return pd.DataFrame(response.json())
+    return pd.DataFrame()
+
+sessions = fetch_sessions()
+
+if not sessions.empty:
+    latest_session = sessions.sort_values("date_start", ascending=False).iloc[0]
+    session_key = latest_session["session_key"]
+
+    st.header(f"📅 Latest Session: {latest_session['session_name']} ({latest_session['circuit_short_name']})")
+    st.markdown(f"**Session Type:** {latest_session['session_type']}  \n**Date:** {latest_session['date_start']}")
+
+    laps = fetch_laps(session_key)
+
+    if not laps.empty:
+        st.subheader("⏱️ Live Lap Data")
+        laps_display = laps[['driver_number', 'lap_number', 'lap_duration', 'st_speed', 'date_start']].sort_values(by='lap_number', ascending=False)
+        st.dataframe(laps_display.reset_index(drop=True), use_container_width=True)
+    else:
+        st.info("Lap data is not available yet.")
+else:
+    st.info("Session data for the 2025 season is not available yet. Please revisit closer to race dates.")
