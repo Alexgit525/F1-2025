@@ -32,15 +32,17 @@ def fetch_results_standings(category):
     soup = fetch_data(urls.get(category))
     if not soup:
         return pd.DataFrame()
+
     table = soup.find('table', class_='resultsarchive-table')
+    if not table:
+        return pd.DataFrame()
+
     headers = [th.get_text(strip=True) for th in table.find_all('th')]
     rows = [[td.get_text(strip=True) for td in tr.find_all('td')] for tr in table.find_all('tr')[1:]]
     return pd.DataFrame(rows, columns=headers)
 
-# Tabs
 tab1, tab2, tab3 = st.tabs(["📅 Race Calendar", "🏁 Results & Standings", "📊 Winning Scenarios"])
 
-# Tab 1 - Race calendar
 with tab1:
     st.subheader("Race Calendar 2025")
     calendar_df = fetch_race_calendar()
@@ -49,21 +51,28 @@ with tab1:
     else:
         st.warning("Race calendar data currently unavailable.")
 
-# Tab 2 - Results and standings
 with tab2:
     st.subheader("Race Results")
     results_df = fetch_results_standings("races")
-    st.dataframe(results_df if not results_df.empty else pd.DataFrame(["No results available yet."]), use_container_width=True)
+    if not results_df.empty:
+        st.dataframe(results_df, use_container_width=True)
+    else:
+        st.info("Race results data not yet available.")
 
     st.subheader("Top 5 Driver Standings")
     drivers_df = fetch_results_standings("drivers").head(5)
-    st.dataframe(drivers_df if not drivers_df.empty else pd.DataFrame(["No standings available yet."]), use_container_width=True)
+    if not drivers_df.empty:
+        st.dataframe(drivers_df, use_container_width=True)
+    else:
+        st.info("Driver standings not yet available.")
 
     st.subheader("Top 5 Constructor Standings")
     teams_df = fetch_results_standings("teams").head(5)
-    st.dataframe(teams_df if not teams_df.empty else pd.DataFrame(["No standings available yet."]), use_container_width=True)
+    if not teams_df.empty:
+        st.dataframe(teams_df, use_container_width=True)
+    else:
+        st.info("Constructor standings not yet available.")
 
-# Tab 3 - Winning Scenarios
 with tab3:
     st.subheader("Winning Scenarios")
     if not drivers_df.empty and not teams_df.empty:
