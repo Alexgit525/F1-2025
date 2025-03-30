@@ -70,16 +70,10 @@ with tab3:
         top_driver = drivers_df.iloc[0]
         top_team = teams_df.iloc[0]
         scenario_text = (
-            f"Driver Scenario:
-"
-            f"{top_driver[2]} currently leads with {top_driver[-1]} points.
-
-"
-            f"Constructor Scenario:
-"
-            f"{top_team[2]} currently leads with {top_team[-1]} points.
-
-"
+            f"Driver Scenario:\n"
+            f"{top_driver[2]} currently leads with {top_driver[-1]} points.\n\n"
+            f"Constructor Scenario:\n"
+            f"{top_team[2]} currently leads with {top_team[-1]} points.\n\n"
             "(Detailed scenarios require additional season data and custom calculations.)"
         )
         st.write(scenario_text)
